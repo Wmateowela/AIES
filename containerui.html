@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CYBER_CORE // CONTAINER_SHOWCASE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;600;700;800&amp;family=Geist:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@100..900&amp;family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom Chamfered Corners via Clip-Path */
+        .clip-chamfer-lg {
+            clip-path: polygon(20px 0%, calc(100% - 20px) 0%, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0% calc(100% - 20px), 0% 20px);
+        }
+        
+        .clip-chamfer-sm {
+            clip-path: polygon(10px 0%, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .clip-chamfer-toast {
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+
+        /* Scanline Animation */
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+        .scanline-effect::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent, rgba(0, 240, 255, 0.1), transparent);
+            height: 10px;
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+        }
+
+        /* Glow pulsing */
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.6; filter: blur(12px); }
+            50% { opacity: 1; filter: blur(18px); }
+        }
+        .glow-pulse {
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#101319",
+                        "on-tertiary-fixed": "#40000f",
+                        "tertiary-container": "#ffcdd0",
+                        "primary-fixed": "#7df4ff",
+                        "surface-container-low": "#191c22",
+                        "surface-dim": "#101319",
+                        "on-primary": "#00363a",
+                        "secondary-container": "#b600f8",
+                        "secondary": "#ebb2ff",
+                        "outline-variant": "#3b494b",
+                        "surface-container-highest": "#32353b",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#91002d",
+                        "error-container": "#93000a",
+                        "background": "#101319",
+                        "primary": "#dbfcff",
+                        "surface-container-high": "#272a31",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#be003d",
+                        "surface-bright": "#363940",
+                        "tertiary-fixed": "#ffdadb",
+                        "secondary-fixed-dim": "#ebb2ff",
+                        "on-tertiary": "#67001d",
+                        "inverse-on-surface": "#2d3037",
+                        "on-primary-container": "#006970",
+                        "on-secondary-container": "#fff6fc",
+                        "on-secondary-fixed": "#320047",
+                        "surface-variant": "#32353b",
+                        "primary-container": "#00f0ff",
+                        "tertiary": "#fff3f3",
+                        "surface-tint": "#00dbe9",
+                        "surface-container": "#1d2026",
+                        "secondary-fixed": "#f8d8ff",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-surface-variant": "#b9cacb",
+                        "error": "#ffb4ab",
+                        "primary-fixed-dim": "#00dbe9",
+                        "on-surface": "#e1e2eb",
+                        "on-primary-fixed": "#002022",
+                        "on-secondary-fixed-variant": "#74009f",
+                        "on-secondary": "#520072",
+                        "outline": "#849495",
+                        "tertiary-fixed-dim": "#ffb2b8",
+                        "on-background": "#e1e2eb",
+                        "inverse-primary": "#006970",
+                        "on-primary-fixed-variant": "#004f54",
+                        "inverse-surface": "#e1e2eb"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "20px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["JetBrains Mono"],
+                        "body-lg": ["Geist"],
+                        "headline-md": ["Anybody"],
+                        "label-sm": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Anybody"],
+                        "display-lg": ["Anybody"],
+                        "body-md": ["Geist"],
+                        "headline-lg": ["Anybody"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "display-lg": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_0_15px_rgba(0,240,255,0.2)] flex justify-between items-center px-margin-desktop py-4">
+<div class="font-headline-md text-headline-md font-black tracking-tighter text-primary-container">CYBER_CORE</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary border-b-2 border-primary-container pb-1 font-label-md text-label-md" href="#">STATIONS</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">ARMORY</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">LEADERBOARD</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">INTEL</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high p-2 transition-all duration-300 active:scale-95">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high p-2 transition-all duration-300 active:scale-95">settings</button>
+<div class="w-10 h-10 border border-primary-container p-0.5">
+<img class="w-full h-full object-cover" data-alt="A futuristic e-sports operator avatar with a high-tech tactical visor reflecting glowing cyan digital data. The character has short dark hair and a neutral expression, set against a dark, industrial background with subtle blue and purple lighting. The style is hyper-detailed digital painting with sharp focus on the glass reflections and textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5tLfy_bQKLHwwx9aq7n2RN3Kom1O-QztUhX-dP4ofj5GXB5srIQi7C-xw8J1pIpz0iqnxGl-64FgHCnhZF92wCOPlhuVN0ovrtEEYAA5nJwuRIbdYK98gHv06Gr80tp1GbcXVftdzBVDW9zlzGOSSFAZ0TprbZt7vJMJAKrttw_LkOSrR8gV1ySv3Sfv46OD4s85ZM1JVS_ik6oOAeNlVsBrx8hCzFu4vMimHCJjuAZ4uNtSIzzVt"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 h-full w-64 hidden lg:flex flex-col bg-surface-container-lowest border-r border-outline-variant/20 pt-24 pb-8 z-40">
+<div class="px-8 mb-12">
+<div class="font-label-sm text-label-sm text-primary-container tracking-widest mb-1">[ACCESS_GRANTED]</div>
+<div class="font-headline-md text-headline-md text-primary font-bold">OPERATOR_01</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">RANK: ELITE</div>
+</div>
+<nav class="flex flex-col gap-unit">
+<a class="flex items-center gap-4 bg-secondary-container text-on-secondary-container border-l-4 border-primary-container px-6 py-3 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">grid_view</span> DASHBOARD
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:bg-surface-container-high px-6 py-3 transition-all duration-200 hover:translate-x-1 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">shield</span> EQUIPMENT
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:bg-surface-container-high px-6 py-3 transition-all duration-200 hover:translate-x-1 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">query_stats</span> TACTICS
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:bg-surface-container-high px-6 py-3 transition-all duration-200 hover:translate-x-1 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">groups</span> SQUAD
+            </a>
+<a class="flex items-center gap-4 text-on-surface-variant hover:bg-surface-container-high px-6 py-3 transition-all duration-200 hover:translate-x-1 font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">inventory_2</span> ARCHIVE
+            </a>
+</nav>
+<div class="mt-auto px-6">
+<button class="w-full py-4 border border-primary-container text-primary-container font-label-md text-label-md hover:bg-primary-container/10 transition-all flex items-center justify-center gap-2 clip-chamfer-sm">
+<span class="material-symbols-outlined">sync</span> SYNC_SYSTEM
+            </button>
+</div>
+</aside>
+<main class="lg:pl-64 pt-24 min-h-screen relative">
+<!-- Background Animation -->
+
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 relative z-10">
+<div class="mb-16">
+<div class="font-label-sm text-label-sm text-primary mb-2 tracking-[0.4em]">[SYSTEM_INTERFACE_GUIDE]</div>
+<h1 class="font-display-lg text-display-lg uppercase tracking-tighter leading-none mb-4">Container Styles</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Showcasing the structural foundation of the Cyber-Athletic design language. High-precision geometry paired with emissive light signatures.</p>
+</div>
+<!-- Showcase Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+<!-- 1. HERO CONTAINER -->
+<div class="xl:col-span-8 flex flex-col gap-6">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-2">01 // HERO_CHAMFER_CONTAINER</div>
+<div class="relative group">
+<!-- Intense Corner Glows -->
+<div class="absolute -top-4 -left-4 w-12 h-12 bg-primary-container/40 glow-pulse rounded-full"></div>
+<div class="absolute -bottom-4 -right-4 w-12 h-12 bg-primary-container/40 glow-pulse rounded-full"></div>
+<div class="relative bg-surface-container-lowest/80 backdrop-blur-md border border-primary-container/30 clip-chamfer-lg p-10 overflow-hidden scanline-effect shadow-[0_0_50px_rgba(0,240,255,0.05)]">
+<!-- Background Grid Pattern -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#00f0ff 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-8">
+<div>
+<div class="font-label-sm text-label-sm text-primary-container mb-2">[CRITICAL_FOCUS]</div>
+<h2 class="font-headline-lg text-headline-lg text-primary uppercase">Mainframe Core View</h2>
+</div>
+<div class="px-4 py-1 border border-primary-container/50 bg-primary-container/10 text-primary-container font-label-sm text-label-sm">
+                                        SECURE_LINE
+                                    </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+<div class="aspect-video bg-surface-container-highest relative border border-outline-variant/30 group-hover:border-primary-container/50 transition-colors duration-500 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A futuristic command center interface showing a rotating 3D holographic wireframe of a cybernetic engine. The visual is rendered in a minimalist cyan and deep indigo color scheme with high-contrast data visualization overlays including scrolling code and performance metrics. Cinematic lighting with subtle lens flares and a shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHdBM8M2Fcvr9X7ms2HBYW50v16IR_txMoNOBWT2OLO56fXamjl_ldcwblZd9wv8VcD3EqtUePb4FY31E3M9YgyEwyOnPC-7hygoc_2KS7B1c83QVX4AeKRJCSDNsaEq39TcKxYDVdOsGWci0XTIPlIV-04kFM6dAjsGF58CNrZXmxtk_uxLrhWeIphJjVRnT2H8ckv9mKzwyIgiW0S9Id5_1IuicSAk-LGdVDG73k4b_mYAWFZVCd"/>
+<div class="absolute top-2 left-2 px-2 py-0.5 bg-background/80 text-[10px] font-label-sm">RENDER_04</div>
+</div>
+<div class="flex flex-col justify-center">
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">
+                                            The Hero Container utilizes maximum geometry manipulation. It features 20px chamfered corners on all sides and a persistent emissive glow to designate primary information hierarchy.
+                                        </p>
+<div class="flex gap-4">
+<button class="bg-primary-container text-on-primary-container px-8 py-3 font-label-md text-label-md clip-chamfer-sm font-bold uppercase transition-transform active:scale-95 hover:brightness-110">Initialize Sync</button>
+<button class="border border-outline text-on-surface px-8 py-3 font-label-md text-label-md clip-chamfer-sm uppercase hover:bg-surface-container-high transition-all">Details</button>
+</div>
+</div>
+</div>
+<!-- Progress Bar Blocks -->
+<div class="space-y-4">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span>SYSTEM_LOAD</span>
+<span class="text-primary-container">78%</span>
+</div>
+<div class="flex gap-1 h-3">
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container/20"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. CONTENT CARDS & TOASTS -->
+<div class="xl:col-span-4 flex flex-col gap-10">
+<!-- Content Card Variation -->
+<div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-4">02 // CONTENT_CARD_SUBTLE</div>
+<div class="bg-surface-container/50 backdrop-blur-sm border border-outline-variant/30 p-6 clip-chamfer-sm hover:border-primary-container/40 transition-all duration-300 group cursor-pointer">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary-container">shield</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">[EQUIP_07]</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">Tactical Shield</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6">Enhanced energy deflection plates with active heat venting technology.</p>
+<div class="flex items-center gap-2 text-primary-container">
+<span class="w-2 h-2 bg-primary-container animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase">Optimized</span>
+</div>
+</div>
+</div>
+<!-- Notification Toast Variation -->
+<div class="relative">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-4">03 // TECH_NOTIFICATION_TOAST</div>
+<!-- The Toast -->
+<div class="bg-surface-container-highest border-l-[6px] border-primary-container clip-chamfer-toast p-5 shadow-2xl flex items-center gap-4 relative overflow-hidden group">
+<!-- Background Tech Accent -->
+<div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4 font-black text-6xl pointer-events-none select-none">!</div>
+<div class="w-10 h-10 bg-primary-container/20 flex items-center justify-center border border-primary-container/40 shrink-0">
+<span class="material-symbols-outlined text-primary-container">priority_high</span>
+</div>
+<div class="flex-1">
+<div class="font-label-sm text-label-sm text-primary-container uppercase font-bold tracking-wider mb-1">Incoming Transmission</div>
+<div class="font-body-md text-body-md text-on-surface">New squad objective detected.</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-on-surface transition-colors">close</button>
+</div>
+<!-- Secondary Variation - Minimalist Alert -->
+<div class="mt-6 bg-surface-container-low border-b border-secondary-container/40 p-4 flex items-center justify-between clip-chamfer-sm">
+<div class="flex items-center gap-3">
+<span class="w-1.5 h-1.5 bg-secondary-container rounded-full shadow-[0_0_8px_#b600f8]"></span>
+<span class="font-label-sm text-label-sm uppercase">Hardware Alert: Overheat</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary-container underline cursor-pointer">RESOLVE</span>
+</div>
+</div>
+<!-- Decorative HUD Accent -->
+<div class="mt-4 opacity-30 select-none">
+<div class="flex gap-2 items-center mb-1">
+<div class="w-2 h-0.5 bg-outline-variant"></div>
+<div class="font-label-sm text-[10px] text-outline-variant">COORDS // 45.32.11.09</div>
+</div>
+<div class="w-full h-px bg-gradient-to-r from-outline-variant/50 to-transparent"></div>
+</div>
+</div>
+</div>
+<!-- Bottom CTA Section -->
+<div class="mt-24 bg-surface-container-lowest/40 border border-outline-variant/10 p-12 text-center clip-chamfer-lg relative overflow-hidden">
+
+<h2 class="font-headline-lg text-headline-lg mb-4 uppercase">Adopt the Standard</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto mb-8">Download the full UI kit containing 50+ components built with the Cyber-Athletic framework.</p>
+<div class="flex flex-col md:flex-row justify-center gap-4 relative z-10">
+<button class="bg-secondary-container text-on-secondary-container px-12 py-4 font-label-md text-label-md font-bold uppercase transition-all duration-300 hover:shadow-[0_0_20px_#b600f8] active:scale-95">Source Codes</button>
+<button class="border border-outline-variant px-12 py-4 font-label-md text-label-md uppercase hover:bg-surface-container-high transition-all">Documentation</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 mt-auto bg-surface-container-low border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center px-margin-desktop gap-4 z-50">
+<div class="font-label-md text-label-md text-primary">CYBER_CORE</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">© 2024 NEON_ATHLETIC_SYSTEMS // ALL RIGHTS RESERVED</div>
+<div class="flex gap-6">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 uppercase" href="#">TERMS_OF_ENGAGEMENT</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 uppercase" href="#">PRIVACY_PROTOCOL</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors duration-300 uppercase" href="#">SYSTEM_STATUS</a>
+</div>
+</footer>
+<!-- Interactions -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simple click feedback for all buttons
+            const buttons = document.querySelectorAll('button, a');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const ripple = document.createElement('div');
+                    ripple.className = 'absolute bg-white/20 rounded-full animate-ping';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.left = `${e.clientX - btn.getBoundingClientRect().left - 10}px`;
+                    ripple.style.top = `${e.clientY - btn.getBoundingClientRect().top - 10}px`;
+                    btn.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 500);
+                });
+            });
+
+            // HUD Coordinate randomizer
+            const coords = document.querySelector('.coords-random');
+            if (coords) {
+                setInterval(() => {
+                    const r1 = Math.floor(Math.random() * 99);
+                    const r2 = Math.floor(Math.random() * 99);
+                    coords.textContent = `COORDS // ${r1}.32.11.${r2}`;
+                }, 2000);
+            }
+        });
+    </script>
+</body></html>

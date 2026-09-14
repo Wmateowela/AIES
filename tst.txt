@@ -1,0 +1,9 @@
+🎨 Color Coding:
+🟣 Purple - Name changed
+🟢 Green - Stock increased
+🟠 Orange - Stock decreased
+🔵 Blue - New product added
+🔴 Red - Product deleted
+🟡 Amber - Bundle modified
+🟣 Indigo - Category changed
+🔷 Teal - Price changed

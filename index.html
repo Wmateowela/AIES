@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookShop POS & Inventory</title>
+    <link rel="icon" href="icon.jpg" type="image/jpeg">
+    <!-- Tailwind CSS CDN -->
+    <script>
+      (function() {
+        const _warn = console.warn;
+        console.warn = function(...args) {
+          if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+          _warn.apply(console, args);
+        };
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for receipts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+      import { getDatabase, ref, set, onValue, update, remove, get as rtdbGet } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+      import { getFirestore, initializeFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc, addDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+      import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDjIO6lsGEUzmT0UbNVLN4HY2yMk5-h1WY",
+        authDomain: "aies-server-side.firebaseapp.com",
+        databaseURL: "https://aies-server-side-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "aies-server-side",
+        storageBucket: "aies-server-side.firebasestorage.app",
+        messagingSenderId: "345273938791",
+        appId: "1:345273938791:web:d20099b1bbaa72d0cef5c2",
+        measurementId: "G-XNLQS17T1N"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      
+      // Force Long Polling to prevent "Could not reach backend" timeouts
+      const fs = initializeFirestore(app, {
+          experimentalForceLongPolling: true,
+          useFetchStreams: false
+      });
+
+      // Export to window
+      window.fb = {
+          db: getDatabase(app),
+          fs: fs,
+          auth: getAuth(app),
+          // RTDB functions
+          ref, set, onValue, update, remove, rtdbGet,
+          // Firestore functions
+          doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc, addDoc, serverTimestamp, onSnapshot,
+          // Auth functions
+          signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged
+      };
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Chamfered Corners via Clip-Path */
+        .clip-chamfer-lg {
+            clip-path: polygon(20px 0%, calc(100% - 20px) 0%, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0% calc(100% - 20px), 0% 20px);
+        }
+        
+        .clip-chamfer-sm {
+            clip-path: polygon(10px 0%, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .clip-chamfer-toast {
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+
+        .sidebar-link.active {
+            @apply bg-blue-600 text-white shadow-lg shadow-blue-500/20;
+        }
+        .sidebar-link.active:hover {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        [v-cloak] { display: none; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.5);
+        }
+
+        /* Smooth scroll for search results */
+        #pos-search-results::-webkit-scrollbar {
+            width: 8px;
+        }
+        #pos-search-results::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 0 16px 16px 0;
+        }
+        #pos-search-results::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
+        }
+        #pos-search-results::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark, body.dark {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+        }
+
+        .dark .bg-white, .dark .bg-slate-50, .dark .bg-slate-100, .dark .bg-slate-50\/50 {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        .dark .bg-white\/80 {
+            background-color: rgba(30, 41, 59, 0.8) !important;
+            border-color: #334155 !important;
+        }
+
+        .dark .text-slate-900, .dark .text-slate-700 {
+            color: #f8fafc !important;
+        }
+
+        .dark .text-slate-500, .dark .text-slate-400, .dark .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+
+        .dark .border-slate-200, .dark .border-slate-100 {
+            border-color: #334155 !important;
+        }
+
+        .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #334155 !important;
+        }
+
+        .dark .shadow-sm, .dark .shadow-md, .dark .shadow-2xl {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .dark input, .dark select, .dark textarea {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+
+        .dark th {
+            color: #cbd5e1 !important;
+            background-color: #1e293b !important;
+        }
+        
+        .dark .hover\:bg-slate-50:hover, .dark .hover\:bg-slate-100:hover, .dark .hover\:bg-slate-200:hover {
+            background-color: #334155 !important;
+        }
+        
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* Space + Drag Grab-Scroll (hold SPACE then left-drag to pan like on phone) */
+        body.space-grab { cursor: grab !important; }
+        body.space-grab * { cursor: grab !important; }
+        body.space-grab.grabbing, body.space-grab.grabbing * {
+            cursor: grabbing !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        /* Dedicated Print Styles for 80mm Thermal Receipt */
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+
+            html, body {
+                width: 80mm;
+                height: auto;
+                background-color: #fff !important;
+                margin: 0;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            body > *:not(#modal-container) {
+                display: none !important;
+            }
+
+            #modal-container {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 80mm !important;
+                height: auto !important;
+                background: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+                visibility: visible !important;
+                backdrop-filter: none !important;
+            }
+
+            #modal-container > div {
+                width: 74mm !important;
+                max-width: 74mm !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                margin: 0 auto !important;
+                padding: 1mm 2.5mm 1mm 1mm !important;
+                box-sizing: border-box !important;
+                background-color: #fff !important;
+                color: #000 !important;
+                transform: none !important;
+                animation: none !important;
+                overflow: visible !important;
+                max-height: none !important;
+                height: auto !important;
+                font-family: 'Inter', sans-serif !important;
+            }
+
+            #receipt-scroll-area {
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+            }
+
+            header h1 {
+                font-size: 13pt !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            header p, header .text-xs {
+                font-size: 9.5pt !important;
+            }
+            .col-span-2 .text-sm, .font-bold.text-gray-900.text-sm {
+                font-size: 9.5pt !important;
+            }
+            .col-span-2 .text-\\[11px\\], .text-gray-400.uppercase.tracking-wider.font-semibold {
+                font-size: 8pt !important;
+            }
+
+            img {
+                max-width: 32mm !important;
+                height: auto !important;
+            }
+
+            #modal-container button {
+                display: none !important;
+            }
+
+            * {
+                color: #000 !important;
+                text-shadow: none !important;
+            }
+
+            .bg-gray-50, .bg-gray-50\/50, .bg-green-100, .bg-purple-100 {
+                background-color: #fff !important;
+            }
+            .text-blue-700, .text-blue-600, .text-green-700, .text-purple-700 {
+                color: #000 !important;
+            }
+            .text-red-500, .text-red-600 {
+                color: #000 !important;
+            }
+            .border-gray-100, .border-gray-200, .border-gray-50, .border-receipt-border {
+                border-color: #000 !important;
+            }
+            .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+                border-color: #000 !important;
+            }
+
+            .font-black, .font-bold, .font-semibold, .font-medium {
+                font-weight: 900 !important;
+            }
+
+            .text-2xl { font-size: 15pt !important; }
+            .text-xl { font-size: 13pt !important; }
+            .text-base { font-size: 11pt !important; }
+            .text-sm { font-size: 10pt !important; }
+            .text-xs { font-size: 9pt !important; }
+            .text-\[13px\] { font-size: 9pt !important; }
+            .text-\[12px\] { font-size: 8.5pt !important; }
+            .text-\[11px\] { font-size: 8.5pt !important; }
+            .text-\[10px\] { font-size: 8pt !important; }
+            .text-\[9px\] { font-size: 7.5pt !important; }
+            .text-\[8px\] { font-size: 7pt !important; }
+            .leading-tight { line-height: 1.1 !important; }
+
+            /* Override section padding for tight thermal fit */
+            .px-4, .px-5, .px-6 {
+                padding-left: 0.5mm !important;
+                padding-right: 0.5mm !important;
+            }
+            .py-2, .py-3, .py-4, .py-5, .py-6, .p-4, .p-5, .p-6 {
+                padding-top: 1mm !important;
+                padding-bottom: 1mm !important;
+            }
+            .py-1, .py-1\\.5 {
+                padding-top: 0.4mm !important;
+                padding-bottom: 0.4mm !important;
+            }
+            .py-0\\.5 {
+                padding-top: 0.2mm !important;
+                padding-bottom: 0.2mm !important;
+            }
+            .gap-2 { gap: 1mm !important; }
+            .gap-y-1 { row-gap: 0.5mm !important; }
+            .gap-y-2 { row-gap: 1mm !important; }
+            .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5mm !important; }
+
+            /* Compact item rows */
+            table td {
+                padding-top: 0.4mm !important;
+                padding-bottom: 0.4mm !important;
+            }
+            table th {
+                padding-bottom: 0.4mm !important;
+            }
+            td.pr-1, th.pr-1 {
+                padding-right: 2.5mm !important;
+            }
+
+            .border-b-2 {
+                border-bottom-width: 1.5px !important;
+                border-color: #000 !important;
+            }
+            .border-t, .border-b {
+                border-width: 0 !important;
+            }
+            .border-t.border-gray-200 {
+                border-top-width: 1px !important;
+                border-color: #000 !important;
+            }
+            .divide-y > :not([hidden]) ~ :not([hidden]) {
+                border-color: #000 !important;
+            }
+            .rounded-full, .rounded-xl, .rounded-lg {
+                border-radius: 0 !important;
+            }
+            .shadow-xl, .shadow-2xl {
+                box-shadow: none !important;
+            }
+            .overflow-hidden { overflow: visible !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-200">
+    <div id="toast-container"></div>
+
+    <!-- Initial Loader to prevent flash -->
+    <div id="initial-loader" class="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-slate-50 transition-opacity duration-300">
+        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-bold text-slate-500 uppercase tracking-widest animate-pulse">Loading BookShop...</p>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="hidden fixed inset-0 flex items-center justify-center p-4 bg-slate-50 z-[999] overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-md w-full bg-white border border-slate-200 shadow-2xl p-8 relative z-10 clip-chamfer-lg">
+            <div class="text-center mb-8">
+                <div id="login-logo" class="inline-flex p-4 bg-blue-600 clip-chamfer-sm mb-4 shadow-xl shadow-blue-600/20 overflow-hidden relative flex items-center justify-center w-16 h-16">
+                    <i data-lucide="book-open" class="text-white w-8 h-8 shrink-0"></i>
+                </div>
+                <h1 id="login-brand-text" class="text-2xl font-bold tracking-tight text-slate-900">BookShop Management</h1>
+                <p class="text-slate-500 mt-2">Sign in to your account</p>
+            </div>
+
+            <form id="login-form" class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-700 ml-1">Username</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                        <input type="text" id="username" required
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 clip-chamfer-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                            placeholder="Enter username">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-700 ml-1">Password</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                        <input type="password" id="password" required
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 clip-chamfer-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                            placeholder="Enter password">
+                    </div>
+                </div>
+
+                <div id="login-error" class="hidden flex items-center gap-2 text-red-600 bg-red-50 p-4 clip-chamfer-sm text-sm border border-red-100">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    <span id="login-error-msg">Invalid credentials</span>
+                </div>
+
+                <button type="submit" id="login-submit-btn"
+                    class="w-full bg-blue-600 text-white py-4 clip-chamfer-sm font-bold shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                    <span id="login-btn-text">Sign In</span>
+                </button>
+            </form>
+
+
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="hidden lg:flex min-h-screen">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden transition-opacity"></div>
+
+        <!-- Sidebar -->
+        <aside class="w-72 bg-white border-r border-slate-200 flex flex-col fixed h-full z-50 transition-all duration-300 shadow-xl lg:shadow-sm -translate-x-full lg:translate-x-0" id="sidebar">
+            <div class="p-8 flex items-center gap-3">
+                <div id="sidebar-logo" class="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20 overflow-hidden relative shrink-0 flex items-center justify-center w-10 h-10">
+                    <i data-lucide="book-open" class="text-white w-6 h-6 shrink-0"></i>
+                </div>
+                <h1 id="shop-name-brand" class="font-bold text-xl text-slate-900 tracking-tight truncate flex-1">BookShop</h1>
+                <button onclick="toggleMobileMenu(false)" class="lg:hidden p-2 text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto" id="sidebar-nav">
+                <!-- Nav items will be injected by JS -->
+            </nav>
+
+            <div class="p-6 border-t border-slate-100">
+                <div class="bg-slate-50 clip-chamfer-sm p-4 mb-4 border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Signed in as</p>
+                    <p id="user-name" class="font-bold text-slate-900 truncate"></p>
+                    <p id="user-role" class="text-xs text-slate-500 capitalize"></p>
+                </div>
+                <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 clip-chamfer-sm text-red-600 hover:bg-red-50 transition-all font-semibold">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="flex-1 lg:ml-72 flex flex-col min-h-screen bg-slate-50/50 w-full overflow-x-hidden" id="content-area">
+            <!-- Header -->
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 fixed top-0 z-50 px-4 lg:px-8 flex items-center justify-between left-0 right-0 lg:left-72">
+                <div class="flex items-center gap-4 flex-1">
+                    <button id="mobile-menu-btn" class="lg:hidden p-3 clip-chamfer-sm bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleNotificationPanel()" class="bell-notification-btn p-3 rounded-lg hover:bg-slate-50 text-slate-500 transition-all relative">
+                        <i data-lucide="bell" class="w-6 h-6"></i>
+                    </button>
+                    <div class="h-8 w-[1px] bg-slate-200 mx-2"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p id="header-user-name" class="text-sm font-bold text-slate-900 leading-none"></p>
+                            <p id="header-user-role" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1"></p>
+                        </div>
+                        <div class="h-11 w-11 clip-chamfer-sm bg-blue-600/10 flex items-center justify-center text-blue-600 border border-blue-600/20">
+                            <i data-lucide="user" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Container -->
+            <main id="view-container" class="p-8 animate-in fade-in slide-in-from-bottom-2 duration-500 mt-20">
+                <!-- Views will be loaded here -->
+            </main>
+        </div>
+
+        <!-- Notification Panel -->
+        <div id="notification-panel" class="hidden fixed top-20 right-8 w-[450px] max-h-[600px] bg-white border border-slate-200 clip-chamfer-lg shadow-2xl z-[200] animate-in slide-in-from-top-4 duration-200">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 clip-chamfer-sm bg-blue-600/10 text-blue-600 flex items-center justify-center">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900">Sheet Changes</h3>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Manual backend updates</p>
+                    </div>
+                </div>
+                <button onclick="toggleNotificationPanel()" class="p-2 hover:bg-slate-200 clip-chamfer-sm transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="notification-list" class="max-h-[450px] overflow-y-auto">
+                <!-- Notifications will be injected here -->
+            </div>
+            
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button onclick="markAllNotificationsRead()" class="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider">Mark all read</button>
+                <button onclick="clearAllNotifications()" class="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-wider">Clear all</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // Scroll to top on page load
+            window.addEventListener('load', () => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            });
+            
+            try {
+                const cached = localStorage.getItem('bsms_shop_settings');
+                if (cached) {
+                    const s = JSON.parse(cached);
+                    const name = s.shopName || 'BookShop';
+                    const logo = s.shopLogo;
+                    
+                    // Update text immediately
+                    const brandEl = document.getElementById('shop-name-brand');
+                    if (brandEl) brandEl.textContent = name;
+                    const loginBrandEl = document.getElementById('login-brand-text');
+                    if (loginBrandEl) loginBrandEl.textContent = name;
+                    
+                    // Update logos immediately
+                    if (logo) {
+                        const style = `width:100%;height:100%;object-fit:cover;transform:scale(${s.logoScale || 1}) translate(${s.logoX || 0}%, ${s.logoY || 0}%);`;
+                        const sidebarLogo = document.getElementById('sidebar-logo');
+                        if (sidebarLogo) sidebarLogo.innerHTML = `<img src="${logo}" style="${style}" onerror="this.style.display='none'">`;
+                        const loginLogo = document.getElementById('login-logo');
+                        if (loginLogo) loginLogo.innerHTML = `<img src="${logo}" style="${style}" onerror="this.style.display='none'">`;
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Modals -->
+    <div id="modal-container" onclick="if(event.target === this) closeModal()" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <!-- Modal content injected by JS -->
+    </div>
+
+
+
+    <!-- Scripts -->
+    <script src="js/services/firebase-helper.js?v=21"></script>
+    <script src="js/services/storage.js?v=21"></script>
+    <script src="js/services/auth.js?v=21"></script>
+    <script src="js/services/inventory.js?v=21"></script>
+    <script src="js/services/sales.js?v=28"></script>
+    <!-- Sheet change notifier is disabled (file renamed to "sheet-change-notifier(remove).js").
+         To re-enable: rename it back to "sheet-change-notifier.js" and uncomment the line below. -->
+    <!-- <script src="js/services/sheet-change-notifier.js?v=21"></script> -->
+    <script src="js/app.js?v=50"></script>
+</body>
+</html>
