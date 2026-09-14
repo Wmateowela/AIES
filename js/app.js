@@ -1,7 +1,11 @@
 // Main Application Logic - BookShop POS & Inventory Management System
 
-// Global configuration
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxo9T8JzqQ7H5sXJ6vN8kR2mP4wL1dF3gH9iJ0kL2mN4oP6qR8sT0uV2wX4yZ6aB8cD0eF2gH4iJ6kL8mN0oP2qR4sT6uV8wX0yZ2aB4cD6eF8gH0iJ2kL4mN6oP8qR0sT2uV4wX6yZ8aB0cD2eF4gH6iJ8kL0mN2oP4qR6sT8uV0wX2yZ4aB6cD8eF0gH2iJ4kL6mN8oP0qR2sT4uV6wX8yZ0aB2cD4eF6gH8iJ0kL2mN4oP6qR8sT0uV2wX4yZ6/exec';
+// Global configuration - Use the config file if available, otherwise fallback
+window.GAS_WEB_APP_URL = (typeof window.GOOGLE_SCRIPT_URL !== 'undefined' && 
+                          window.GOOGLE_SCRIPT_URL && 
+                          window.GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') 
+                         ? window.GOOGLE_SCRIPT_URL 
+                         : 'https://script.google.com/macros/s/AKfycbxo9T8JzqQ7H5sXJ6vN8kR2mP4wL1dF3gH9iJ0kL2mN4oP6qR8sT0uV2wX4yZ6aB8cD0eF2gH4iJ6kL8mN0oP2qR4sT6uV8wX0yZ2aB4cD6eF8gH0iJ2kL4mN6oP8qR0sT2uV4wX6yZ8aB0cD2eF4gH6iJ8kL0mN2oP4qR6sT8uV0wX2yZ4aB6cD8eF0gH2iJ4kL6mN8oP0qR2sT4uV6wX8yZ0aB2cD4eF6gH8iJ0kL2mN4oP6qR8sT0uV2wX4yZ6/exec';
 
 // Global state
 window.appState = {

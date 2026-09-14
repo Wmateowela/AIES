@@ -5,11 +5,17 @@ window.InventoryService = {
     isInitialized: false,
     listeners: [],
 
-    // Initialize inventory from Google Sheets
+    // Initialize inventory from Google Sheets with fallback to LocalStorage
     init: async (onDataUpdate) => {
         try {
             console.log("Fetching Inventory directly from Google Sheets...");
-            const response = await fetch(GAS_WEB_APP_URL);
+            
+            // Check if we have a valid URL
+            if (typeof window.GAS_WEB_APP_URL === 'undefined' || !window.GAS_WEB_APP_URL || window.GAS_WEB_APP_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                throw new Error('Google Apps Script URL not configured. Please update js/config/google-sheet-config.js');
+            }
+            
+            const response = await fetch(window.GAS_WEB_APP_URL);
             if (!response.ok) throw new Error('Failed to fetch from Google Sheets');
 
             const productsData = await response.json();
@@ -33,8 +39,40 @@ window.InventoryService = {
             if (typeof renderInventoryTable === 'function') renderInventoryTable();
         } catch (e) {
             console.error("Error loading inventory from Sheets:", e);
+            
+            // Fallback to LocalStorage
+            console.log("Falling back to LocalStorage...");
+            const localData = localStorage.getItem('inventory_products');
+            if (localData) {
+                try {
+                    InventoryService.products = JSON.parse(localData);
+                    InventoryService.isInitialized = true;
+                    console.log(`Inventory loaded from LocalStorage: ${InventoryService.products.length} items`);
+                    
+                    // Notify all listeners
+                    InventoryService.notifyListeners();
+                    if (onDataUpdate) onDataUpdate(InventoryService.products);
+
+                    if (typeof renderInventoryTable === 'function') renderInventoryTable();
+                    
+                    if (typeof showToast === 'function') {
+                        showToast('Using offline mode. Connect to sync with Sheets.', 'warning');
+                    }
+                    return;
+                } catch (parseError) {
+                    console.error("Error parsing local inventory:", parseError);
+                }
+            }
+            
+            // If no local data either, initialize empty
+            InventoryService.products = [];
+            InventoryService.isInitialized = true;
+            InventoryService.notifyListeners();
+            if (onDataUpdate) onDataUpdate([]);
+            if (typeof renderInventoryTable === 'function') renderInventoryTable();
+            
             if (typeof showToast === 'function') {
-                showToast('Failed to load inventory from Sheets', 'error');
+                showToast('Failed to load inventory. Using empty inventory.', 'error');
             }
         }
     },
@@ -117,7 +155,7 @@ window.InventoryService = {
             try {
                 console.log(`Sending stock update to Sheet: Row ${id}, New Qty ${newQty}`);
 
-                await fetch(GAS_WEB_APP_URL, {
+                await fetch(window.GAS_WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     cache: 'no-cache',
@@ -157,7 +195,7 @@ window.InventoryService = {
         const product = InventoryService.getProductById(id);
         if (product) {
             try {
-                await fetch(GAS_WEB_APP_URL, {
+                await fetch(window.GAS_WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     cache: 'no-cache',
